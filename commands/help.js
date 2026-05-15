@@ -7,7 +7,7 @@ module.exports = {
     description: [
         "Get help for a command.",
         "",
-        "**List of all commands:** https://github.com/respektive/flowabot/blob/master/COMMANDS.md"
+        "**List of all commands:** https://github.com/fransogrt/flowabot/blob/main/COMMANDS.md"
     ],
     usage: '<command>',
     example: [
