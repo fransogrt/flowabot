@@ -1,5 +1,5 @@
 const LocalStorage = require('node-localstorage').LocalStorage;
-localStorage = new LocalStorage('./scratch');
+localStorage = new LocalStorage('./data');
 
 const { DateTime } = require('luxon');
 const fs = require('fs');
