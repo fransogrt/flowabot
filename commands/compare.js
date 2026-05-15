@@ -12,7 +12,7 @@ async function getBeatmapIdFromMessage(msg) {
 }
 
 module.exports = {
-    command: ['compare', 'c'],
+    command: ['compare', 'c', 'gmae', 'lisko'],
     description: "Search for best score on the last beatmap.",
     usage: '[username or * for all users] [+mods]',
     example: [
