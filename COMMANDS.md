@@ -12,7 +12,6 @@
 - [;ign-set](#ign-set)
 - [;lazerscore](#lazerscore)
 - [;level](#level)
-- [;np](#np)
 - [;oppai](#oppai)
 - [;oppai2](#oppai2)
 - [;osu](#osu)
@@ -204,10 +203,6 @@ Calculates your experimental level.
 ;level mrekk
 ```
 Calculates mrekk's experimental level.
-## ;np
-Shows what song you are currently listening to. If it can't be retrieved from Rich Presence it will ask for a Last.fm username.
-
-**Usage**: `;np [last.fm username]`
 ## ;oppai
 Uses oppai (2016 ppv2) to calculate pp for a beatmap.
 

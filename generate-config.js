@@ -358,37 +358,6 @@
     config.credentials.twitch_client_id = value == 'none' ? "" : value;
 	config.credentials.twitch_client_secret = value2 == 'none' ? "" : value2;
 
-    default_value = 'none';
-
-    if(config.credentials.last_fm_key)
-        default_value = config.credentials.last_fm_key;
-
-    do{
-        console.log('');
-        console.log(`(Optional) A Last.fm API Key is needed for the Last.fm commands to work. You can get one here: ${chalk.blueBright('https://www.last.fm/api/account/create')}.`);
-        value = readline.question(`Last.fm API Key [${chalk.green(default_value)}]: `);
-
-        if(!value)
-            value = default_value;
-
-        valid_key = true;
-
-        if(value != 'none'){
-            try{
-                await axios.get('http://ws.audioscrobbler.com/2.0/', { params: { method: 'chart.gettopartists', api_key: value } });
-            }catch(e){
-                valid_key = false;
-            }
-
-            if(valid_key)
-                console.log(chalk.greenBright("Valid Last.fm API Key!"));
-            else
-                console.log(chalk.redBright("Invalid Last.fm API Key!"));
-        }
-    }while(!valid_key && value != 'none');
-
-    config.credentials.last_fm_key = value == 'none' ? "" : value;
-
     console.log('');
 
     try{
