@@ -4,28 +4,20 @@
 - [;ar](#ar)
 - [;bmi](#bmi)
 - [;bpm](#bpm)
-- [;bttv](#bttv)
 - [;calcscore](#calcscore)
 - [;compare](#compare)
-- [;define](#define)
-- [;emojipedia](#emojipedia)
-- [;emote](#emote)
-- [;eval](#eval)
-- [;fantasychange](#fantasychange)
-- [;fantasyname](#fantasyname)
-- [;ffz](#ffz)
-- [;flowa](#flowa)
-- [;flowabot](#flowabot)
+- [;firsts](#firsts)
+- [;fucking](#fucking)
 - [;help](#help)
 - [;ign-set](#ign-set)
-- [;lastfm](#lastfm)
 - [;lazerscore](#lazerscore)
+- [;level](#level)
 - [;np](#np)
 - [;oppai](#oppai)
 - [;oppai2](#oppai2)
+- [;osu](#osu)
 - [;osu-track](#osu-track)
 - [;osu-untrack](#osu-untrack)
-- [;osu](#osu)
 - [;packs](#packs)
 - [;ping](#ping)
 - [;ping2](#ping2)
@@ -36,14 +28,11 @@
 - [;rosu](#rosu)
 - [;score](#score)
 - [;strains](#strains)
-- [;streamin](#streamin)
 - [;tap](#tap)
 - [;time](#time)
 - [;top](#top)
 - [;tops](#tops)
-- [;uptime](#uptime)
-- [;urban](#urban)
-- [;viewers](#viewers)
+- [;w;](#w)
 - [;with](#with)
 ---
 ## ;addpp
@@ -104,16 +93,6 @@ Returns BPM graph for the last beatmap.
 ;bpm https://osu.ppy.sh/b/75 +DT
 ```
 Returns BPM graph with DT for specific beatmap.
-## ;bttv
-Show a BTTV emote by name. Emotes from <https://betterttv.com/>.
-
-**Usage**: `;bttv <emote name>`
-### Example:
-
-```
-;bttv WoweeHOP
-```
-Returns WoweeHOP BTTV emote
 ## ;calcscore
 Calculate maximum score for a beatmap.
 
@@ -153,109 +132,28 @@ Returns Vaxei's best score with the same mods on the last beatmap.
 ;compare * +HD
 ```
 Returns the #1 HD score on the last beatmap.
-## ;define
-Shows the definition of a word.
+## ;firsts
+Show a list of first places
 
-**Variations**: `;define`, `;dictionary`, `;dict`
-
-**Usage**: `;define <word>`
-### Example:
-
-```
-;define help
-```
-Returns the definition for the word 'help'.
-## ;emojipedia
-Look up what an emoji looks like on all platforms (warning: spammy).
-
-**Usage**: `;emojipedia <emoji>`
-### Example:
-
-```
-;emojipedia 🤔
-```
-Returns thinking emoji on all platforms.
-## ;emote
-Print one or multiple emotes the bot can use in chat.
-
-**Variations**: `;emote`, `;e`
-
-**Usage**: `;emote <emote 1> [emote 2] [emote n]`
-### Example:
-
-```
-;e SourPls
-```
-Returns SourPls emote.
-## ;eval
-Runs JavaScript code and returns the result of the last evaluation. Underscore.js for array/object helpers and `bonusPP(n)` for bonus pp calculation are available.
-
-**Usage**: `;eval [javascript code]`
+**Usage**: `;firsts [username]`
 ### Examples:
 
 ```
-;eval 5+5
+;firsts
 ```
-Evaluates 5+5 and returns the result.
+Returns your top 5 first places.
 
 ```
-;eval _max.([1, 2, 3])
+;firsts7 vaxei
 ```
-Uses Underscore.js to return the maximum value of an array.
-## ;fantasychange
-Generates a fantasy name and changes your nickname to it.
-Available types: `human`, `elf`, `dwarf`, `hobbit`, `barbarian`, `orc`, `evil`, `asian`, `arabic`, `surname`, `sci-fi`, `lovecraft`, `reptilian`, `aztec`, `ratman`, `demon`, `dragon`, `wizard`, `mixed`, `english`, `place`, `title`, `military`, `hero/villain`, `rockband`
-Available lengths: `short`, `medium`, `long`
-Data from <https://www.fantasynamegen.com/>.
+Returns Vaxei's top 7 first places.
+## ;fucking
 
-**Usage**: `;fantasychange <type> [length]`
-### Example:
-
-```
-;fantasychange elf medium
-```
-Generates a medium-length elf name and sets it as your nickname.
-## ;fantasyname
-Generates a fantasy name.
-Available types: `human`, `elf`, `dwarf`, `hobbit`, `barbarian`, `orc`, `evil`, `asian`, `arabic`, `surname`, `sci-fi`, `lovecraft`, `reptilian`, `aztec`, `ratman`, `demon`, `dragon`, `wizard`, `mixed`, `english`, `place`, `title`, `military`, `hero/villain`, `rockband`
-Available lengths: `short`, `medium`, `long`
-Data from <https://www.fantasynamegen.com/>.
-
-**Usage**: `;fantasyname <type> [length]`
-### Example:
-
-```
-;fantasyname elf medium
-```
-Returns a medium-length elf name.
-## ;ffz
-Show an FFZ emote by name. Emotes from <https://frankerfacez.com/>.
-
-**Usage**: `;ffz <emote name>`
-### Example:
-
-```
-;ffz WoweeW
-```
-Returns WoweeW FFZ emote
-## ;flowa
-Show a random flower picture. Images from <https://pexels.com/>.
-
-**Usage**: `;flowa [optional tags separated by space]`
-### Example:
-
-```
-;flowa sakura tree
-```
-Returns a random picture of a sakura tree.
-## ;flowabot
-Show information about this bot.
-
-**Usage**: `;flowabot`
+**Usage**: `;fucking`
 ## ;help
 Get help for a command.
 
-**List of all commands:** https://github.com/respektive/flowabot/blob/master/COMMANDS.md
+**List of all commands:** https://github.com/fransogrt/flowabot/blob/main/COMMANDS.md
 
 **Usage**: `;help <command>`
 ### Example:
@@ -274,16 +172,6 @@ Sets your osu! username so you can use osu! commands without specifying a userna
 ;ign-set nathan on osu
 ```
 Sets your osu! username to nathan on osu.
-## ;lastfm
-Show Last.fm stats for a user.
-
-**Usage**: `;lastfm <last.fm username> [period (7day, 1month, 3month, 6month, 12month, overall)]`
-### Example:
-
-```
-;lastfm rj overall
-```
-Returns total last.fm stats for rj.
 ## ;lazerscore
 Calculate maximum lazer classic score for a beatmap.
 
@@ -301,6 +189,21 @@ Returns the maximum lazer classic score for Disco Prince with no mods.
 ;classicscore https://osu.ppy.sh/b/75 +HDHRDT
 ```
 Returns the maximum lazer classic score for Disco Prince +HDHRDT.
+## ;level
+Calculate experimental level.
+
+**Usage**: `;level [username]`
+### Examples:
+
+```
+;level
+```
+Calculates your experimental level.
+
+```
+;level mrekk
+```
+Calculates mrekk's experimental level.
 ## ;np
 Shows what song you are currently listening to. If it can't be retrieved from Rich Presence it will ask for a Last.fm username.
 
@@ -325,6 +228,18 @@ Uses oppai (2014 ppv2) to calculate pp for a beatmap.
 ;oppai https://osu.ppy.sh/b/75 +DT 
 ```
 Calculates pp on this beatmap with DT applied.
+## ;osu
+Show osu! stats.
+
+**Variations**: `;osu`, `;osu2`
+
+**Usage**: `;osu [username]`
+### Example:
+
+```
+;osu nathan_on_osu
+```
+Returns nathan on osu's osu! stats.
 ## ;osu-track
 Start tracking the specified user's osu! top plays in the current channel.
 
@@ -345,18 +260,6 @@ Stop tracking the specified user's osu! top plays in the current channel.
 ;osu-untrack nathan_on_osu
 ```
 Stop tracking nathan on osu's top plays.
-## ;osu
-Show osu! stats.
-
-**Variations**: `;osu`, `;osu2`
-
-**Usage**: `;osu [username]`
-### Example:
-
-```
-;osu nathan_on_osu
-```
-Returns nathan on osu's osu! stats.
 ## ;packs
 Get the beatmap packs containing the given beatmap.
 
@@ -514,10 +417,6 @@ Returns strain graph with HR applied and CS set to 5 for the last beatmap.
 ;strains https://osu.ppy.sh/b/75 aim
 ```
 Returns aim strain graph for this beatmap.
-## ;streamin
-he smells
-
-**Usage**: `;streamin`
 ## ;tap
 Calculate BPM values for different beat snap divisors
 
@@ -585,43 +484,9 @@ Returns your top 5 plays.
 ;tops7 vaxei
 ```
 Returns Vaxei's top 7 plays.
-## ;uptime
-See how for long a Twitch channel has been live or for how long it hasn't been streaming.
+## ;w;
 
-**Variations**: `;uptime`, `;downtime`
-
-**Usage**: `;uptime <twitch username>`
-### Examples:
-
-```
-;uptime distortion2
-```
-Returns distortion2's uptime or downtime.
-
-```
-;downtime ninja
-```
-Returns ninja's uptime or downtime.
-## ;urban
-Shows the definition of a word on urbandictionary.
-
-**Usage**: `;urban <word>`
-### Example:
-
-```
-;urban help
-```
-Returns the definition for the word 'help'.
-## ;viewers
-See how many people are watching a Twitch channel.
-
-**Usage**: `;viewers <twitch username>`
-### Example:
-
-```
-;viewers distortion2
-```
-Returns how many viewers distortion2 currently has (if they're live).
+**Usage**: `;w;`
 ## ;with
 Show pp values of a beatmap with several accuracies or a specified accuracy.
 
