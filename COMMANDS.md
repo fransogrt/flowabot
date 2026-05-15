@@ -21,7 +21,6 @@
 - [;ping](#ping)
 - [;ping2](#ping2)
 - [;pins](#pins)
-- [;query](#query)
 - [;recent](#recent)
 - [;render](#render)
 - [;rosu](#rosu)
@@ -297,10 +296,6 @@ Returns your top 5 pinned plays.
 ;pins7 vaxei
 ```
 Returns Vaxei's top 7 pinned plays.
-## ;query
-Run SQL query.
-
-**Usage**: `;query <query>`
 ## ;recent
 Show recent score or pass.
 
