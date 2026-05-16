@@ -2,7 +2,7 @@ const osu = require('../osu.js');
 const helper = require('../helper.js');
 
 module.exports = {
-    command: 'addpp',
+    command: ['addpp', 'whatif', 'wi'],
     description: "Calculate new total pp after achieving a certain top play.",
     argsRequired: 1,
     usage: '<amounts separated by +> [username] [beatmap_id]',
