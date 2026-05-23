@@ -275,12 +275,12 @@ module.exports = {
                     embed.fields.push({
                         name: `🔵 Blue Team`,
                         value: blue_team.map(formatPlayer).join('\n') || '*No scores*',
-                        inline: true
+                        inline: false
                     });
                     embed.fields.push({
                         name: `🔴 Red Team`,
                         value: red_team.map(formatPlayer).join('\n') || '*No scores*',
-                        inline: true
+                        inline: false
                     });
                 } else {
                     embed.description = results.map(formatPlayer).join('\n') || 'No scores found.';
