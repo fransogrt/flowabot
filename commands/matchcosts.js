@@ -111,14 +111,11 @@ module.exports = {
                     return;
                 }
 
-                // Debug: log first score to understand API structure
-                if (games[0] && games[0].scores[0]) {
-                    console.log('[matchcosts] score sample:', JSON.stringify(games[0].scores[0]));
-                    console.log('[matchcosts] game sample:', JSON.stringify({ team_type: games[0].team_type, scoring_type: games[0].scoring_type, scores_count: games[0].scores.length }));
-                }
-
+                // Normalize: API v2 returns total_score (scorev2/lazer), score (old stable)
                 games.forEach(game => {
-                    game.scores = game.scores.filter(s => s.score > 0);
+                    game.scores = game.scores
+                        .map(s => ({ ...s, score: s.total_score || s.score || 0 }))
+                        .filter(s => s.score > 0);
                 });
                 games = games.filter(g => g.scores.length > 0);
 
