@@ -68,6 +68,7 @@ module.exports = {
 
                 // Fetch all match events (paginated)
                 let all_events = [];
+                let all_users = {};
                 let match_data = null;
                 let cursor_id = null;
 
@@ -82,9 +83,13 @@ module.exports = {
                         match_data = { id: data.match.id, name: data.match.name };
                     }
 
+                    // Build username map from users array
+                    if (data.users) {
+                        data.users.forEach(u => { all_users[u.id] = u.username; });
+                    }
+
                     if (!data.events || data.events.length === 0) break;
 
-                    // prepend since we're going backwards
                     all_events = data.events.concat(all_events);
 
                     if (data.first_event_id === data.events[0].id) break;
@@ -92,9 +97,9 @@ module.exports = {
                     cursor_id = data.events[0].id;
                 }
 
-                // Filter to only game events
+                // Filter to only game events that have scores
                 let games = all_events
-                    .filter(e => e.game != null)
+                    .filter(e => e.game != null && e.game.scores && e.game.scores.length > 0)
                     .map(e => e.game);
 
                 // Skip warmups
@@ -106,31 +111,36 @@ module.exports = {
                     return;
                 }
 
-                // Remove failed/zero scores from each game
+                // Remove failed/zero scores from each game, then drop games with no valid scores
                 games.forEach(game => {
                     game.scores = game.scores.filter(s => s.score > 0);
                 });
+                games = games.filter(g => g.scores.length > 0);
+
+                if (games.length === 0) {
+                    reject('No valid scores found in this match.');
+                    return;
+                }
 
                 // Determine team mode
                 let is_team_vs = games.some(g => g.team_type === 'team-vs' || g.team_type === 'tag-team-vs');
 
                 // Collect per-player data
-                let players = {}; // user_id -> { username, team, scores: [normalized], mod_combos: Set }
+                let players = {};
 
                 let total_games = games.length;
 
                 games.forEach(game => {
-                    if (game.scores.length === 0) return;
-
                     let avg_score = game.scores.reduce((sum, s) => sum + s.score, 0) / game.scores.length;
 
                     game.scores.forEach(score => {
                         let uid = score.user_id;
+                        let team = (score.match && score.match.team) || score.team || 'none';
                         if (!players[uid]) {
                             players[uid] = {
                                 user_id: uid,
-                                username: score.user ? score.user.username : String(uid),
-                                team: score.match ? score.match.team : 'none',
+                                username: all_users[uid] || String(uid),
+                                team,
                                 normalized_scores: [],
                                 mod_combos: new Set(),
                                 total_score: 0,
@@ -143,7 +153,6 @@ module.exports = {
                         players[uid].total_score += score.score;
                         players[uid].maps_played += 1;
 
-                        // Track mod combinations
                         let mods = score.mods || [];
                         if (mods.length > 0) {
                             let combo_key = mods.slice().sort().join('');
