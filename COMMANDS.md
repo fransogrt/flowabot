@@ -7,6 +7,7 @@
 - [;calcscore](#calcscore)
 - [;compare](#compare)
 - [;firsts](#firsts)
+- [;matchcosts](#matchcosts)
 - [;fucking](#fucking)
 - [;help](#help)
 - [;ign-set](#ign-set)
@@ -130,6 +131,23 @@ Returns Vaxei's best score with the same mods on the last beatmap.
 ;compare * +HD
 ```
 Returns the #1 HD score on the last beatmap.
+## ;matchcosts
+Calculate match cost for all players in a tournament match.
+
+**Variations**: `;matchcosts`, `;matchcost`, `;mc`
+
+**Usage**: `;matchcosts <match url or id> [warmups]`
+### Examples:
+
+```
+;matchcosts https://osu.ppy.sh/community/matches/123456789
+```
+Returns match cost for all players.
+
+```
+;mc https://osu.ppy.sh/mp/123456789 2
+```
+Returns match cost skipping the first 2 warmup maps.
 ## ;firsts
 Show a list of first places
 

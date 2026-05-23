@@ -1167,6 +1167,10 @@ module.exports = {
 		}
     },
 
+    get_api: function() {
+        return api;
+    },
+
     sanitize_mods: function(mods) {
         return sanitizeMods(mods)
     },
