@@ -227,10 +227,14 @@ module.exports = {
                 results.sort((a, b) => b.match_cost - a.match_cost);
 
                 const MEDALS = ['🥇', '🥈', '🥉'];
-                const rankIcon = i => MEDALS[i] || `\`${i + 1}.\``;
 
-                const formatPlayer = (p, i) =>
-                    `${rankIcon(i)} **${p.username}** — ${p.match_cost.toFixed(2)} *(${p.maps_played}/${total_games} · ${p.avg_score.toLocaleString()} avg)*`;
+                // Assign global rank medals before splitting by team
+                results.forEach((p, i) => { p.globalRank = i; });
+
+                const formatPlayer = (p) => {
+                    let icon = MEDALS[p.globalRank] || `\`${p.globalRank + 1}.\``;
+                    return `${icon} **${p.username}** — ${p.match_cost.toFixed(2)} *(${p.maps_played}/${total_games} · ${p.avg_score.toLocaleString()} avg)*`;
+                };
 
                 // Count team wins
                 let blue_wins = 0, red_wins = 0;
