@@ -92,9 +92,9 @@ module.exports = {
                     cursor_id = data.events[0].id;
                 }
 
-                // Filter to only game events that have ended
+                // Filter to only game events
                 let games = all_events
-                    .filter(e => e.type === 'other' && e.game && e.game.end_time)
+                    .filter(e => e.game != null)
                     .map(e => e.game);
 
                 // Skip warmups
