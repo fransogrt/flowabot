@@ -226,42 +226,60 @@ module.exports = {
 
                 results.sort((a, b) => b.match_cost - a.match_cost);
 
-                // Build embed
+                const MEDALS = ['🥇', '🥈', '🥉'];
+                const rankIcon = i => MEDALS[i] || `\`${i + 1}.\``;
+
+                const formatPlayer = (p, i) =>
+                    `${rankIcon(i)} **${p.username}** — ${p.match_cost.toFixed(2)} *(${p.maps_played}/${total_games} · ${p.avg_score.toLocaleString()} avg)*`;
+
+                // Count team wins
+                let blue_wins = 0, red_wins = 0;
+                if (is_team_vs) {
+                    games.forEach(game => {
+                        let blue = 0, red = 0;
+                        game.scores.forEach(s => {
+                            let team = (s.match && s.match.team) || s.team || 'none';
+                            if (team === 'blue') blue += s.score;
+                            else if (team === 'red') red += s.score;
+                        });
+                        if (blue > red) blue_wins++;
+                        else if (red > blue) red_wins++;
+                    });
+                }
+
+                let mvp = results[0];
+
                 let embed = { fields: [] };
-                embed.color = 0xFF6699;
+                embed.color = 0x5865F2;
                 embed.title = match_data.name;
                 embed.url = `https://osu.ppy.sh/community/matches/${match_id}`;
 
-                let mvp = results[0];
                 if (mvp) {
-                    embed.author = {
-                        name: `MVP: ${mvp.username} (${mvp.match_cost.toFixed(2)})`,
-                        icon_url: `https://a.ppy.sh/${mvp.user_id}`,
-                        url: `https://osu.ppy.sh/u/${mvp.user_id}`
-                    };
+                    embed.thumbnail = { url: `https://a.ppy.sh/${mvp.user_id}` };
                 }
 
-                embed.footer = {
-                    text: `${total_games} map${total_games !== 1 ? 's' : ''}${warmups > 0 ? ` | ${warmups} warmup${warmups !== 1 ? 's' : ''} skipped` : ''}`
-                };
+                let footer_parts = [`${total_games} map${total_games !== 1 ? 's' : ''}`];
+                if (warmups > 0) footer_parts.push(`${warmups} warmup${warmups !== 1 ? 's' : ''} skipped`);
+                embed.footer = { text: footer_parts.join(' · ') };
 
                 if (is_team_vs) {
                     let blue_team = results.filter(p => p.team === 'blue');
                     let red_team = results.filter(p => p.team === 'red');
 
-                    let formatTeam = (players) =>
-                        players.map((p, i) =>
-                            `\`${String(i + 1).padStart(2)}.\` **${p.match_cost.toFixed(2)}** ${p.username} *(${p.maps_played}/${total_games} maps, avg ${p.avg_score.toLocaleString()})*`
-                        ).join('\n') || '*No scores*';
+                    embed.description = `🔵 **${blue_wins}** — **${red_wins}** 🔴`;
 
-                    embed.fields.push({ name: '🔵 Blue Team', value: formatTeam(blue_team), inline: false });
-                    embed.fields.push({ name: '🔴 Red Team', value: formatTeam(red_team), inline: false });
+                    embed.fields.push({
+                        name: `🔵 Blue Team`,
+                        value: blue_team.map(formatPlayer).join('\n') || '*No scores*',
+                        inline: true
+                    });
+                    embed.fields.push({
+                        name: `🔴 Red Team`,
+                        value: red_team.map(formatPlayer).join('\n') || '*No scores*',
+                        inline: true
+                    });
                 } else {
-                    let list = results.map((p, i) =>
-                        `\`${String(i + 1).padStart(2)}.\` **${p.match_cost.toFixed(2)}** ${p.username} *(${p.maps_played}/${total_games} maps, avg ${p.avg_score.toLocaleString()})*`
-                    ).join('\n');
-
-                    embed.description = list || 'No scores found.';
+                    embed.description = results.map(formatPlayer).join('\n') || 'No scores found.';
                 }
 
                 resolve({ embeds: [embed] });
