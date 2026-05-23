@@ -111,7 +111,12 @@ module.exports = {
                     return;
                 }
 
-                // Remove failed/zero scores from each game, then drop games with no valid scores
+                // Debug: log first score to understand API structure
+                if (games[0] && games[0].scores[0]) {
+                    console.log('[matchcosts] score sample:', JSON.stringify(games[0].scores[0]));
+                    console.log('[matchcosts] game sample:', JSON.stringify({ team_type: games[0].team_type, scoring_type: games[0].scoring_type, scores_count: games[0].scores.length }));
+                }
+
                 games.forEach(game => {
                     game.scores = game.scores.filter(s => s.score > 0);
                 });
