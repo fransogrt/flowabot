@@ -13,6 +13,7 @@
 - [;ign-set](#ign-set)
 - [;lazerscore](#lazerscore)
 - [;level](#level)
+- [;lol](#lol)
 - [;oppai](#oppai)
 - [;oppai2](#oppai2)
 - [;osu](#osu)
@@ -31,6 +32,7 @@
 - [;time](#time)
 - [;top](#top)
 - [;tops](#tops)
+- [;valorant](#valorant)
 - [;w;](#w)
 - [;with](#with)
 ---
@@ -220,6 +222,28 @@ Calculates your experimental level.
 ;level mrekk
 ```
 Calculates mrekk's experimental level.
+## ;lol
+Show League of Legends profile.
+
+**Variations**: `;lol`, `;league`
+
+**Usage**: `;lol <name#tag> [flex] [region]`
+### Examples:
+
+```
+;lol thpr#EUW
+```
+Returns Solo/Duo profile on EUW.
+
+```
+;lol thpr#EUW flex
+```
+Returns Flex profile on EUW.
+
+```
+;lol Faker#KR1 kr
+```
+Returns Solo/Duo profile on KR.
 ## ;oppai
 Uses oppai (2016 ppv2) to calculate pp for a beatmap.
 
@@ -492,6 +516,23 @@ Returns your top 5 plays.
 ;tops7 vaxei
 ```
 Returns Vaxei's top 7 plays.
+## ;valorant
+Show Valorant profile stats for the current season.
+
+**Variations**: `;valorant`, `;val`
+
+**Usage**: `;valorant <name#tag> [competitive|swiftplay]`
+### Examples:
+
+```
+;val pipa#6908
+```
+Returns pipa's competitive stats for the current season.
+
+```
+;val pipa#6908 swiftplay
+```
+Returns pipa's swiftplay stats for the current season.
 ## ;w;
 
 **Usage**: `;w;`

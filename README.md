@@ -1,102 +1,67 @@
-<p align="center"><img width="100" height="100" src="https://i.imgur.com/LJjnN1r.png"></p>
+# flowabot
 
-<h1 align="center">flowabot</h1>
+Discord bot focused on osu! features. Shows scorecards, stat lookups, beatmap renders, pp calculations, and more. Also supports League of Legends and Valorant profile commands.
 
-**flowabot** is a modular discord bot with a focus on osu! features. Instead of me explaining this with words, I'll just leave a demonstration video:
+Full command list: [COMMANDS.md](COMMANDS.md)
 
-<p align="center"><a target="_blank" href="https://streamable.com/12ybd"><img width="415px" height="350px" src="https://i.imgur.com/oixZ9tK.png"></img></a></p>
+---
 
-<p align="center"><b><i>Jump to <a href="#Installation">Installation</a>.</b></i></p>
-
-<h2 align="center">Main Features</h2>
-
-<h3 align="center">Fancy scorecards with unique information like a difficulty graph or unstable rate</h3>
-
-<p align="center"><img src="https://i.imgur.com/WoJ4Dve.png"></img></p>
-
-<h3 align="center">Get an overview of your osu! stats</h3>
-
-<p align="center"><img src="https://i.imgur.com/wixlCi9.png"></img></p>
-
-<h3 align="center">Render a video or picture of any osu! beatmap</h3>
-
-<p align="center"><img src="https://i.imgur.com/I8eARhO.gif"></img></p>
-
-<h3 align="center">Get a graph with the hardest parts of a beatmap</h3>
-
-<p align="center"><img src="https://i.imgur.com/C2dDkA5.png"></img></p>
-
-<h3 align="center">Get a graph of the bpm changes throughout a beatmap</h3>
-
-<p align="center"><img src="https://i.imgur.com/RaqLCL5.png"></img></p>
-
-<h4 align="center">You can find more features in the <a href="COMMANDS.md">commands list</a>.</h4>
-
-<h2 id="Installation" align="center">Installation</h2>
+## Installation
 
 ### Prerequisites
 
-- **Using Linux or macOS is recommended** (No support for Windows, here's two unofficial guides to run it on Windows if you wanna try anyway: https://github.com/LeaPhant/flowabot/issues/9, https://pastebin.com/g6yuxCCf)
-- Git (https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
-- Node.js 14 or higher (https://nodejs.org/)
-- node-gyp (https://github.com/nodejs/node-gyp#installation)
-- Be sure to have gcc/g++ installed, e.g. `sudo apt install build-essential` on Ubuntu
-- Discord bot token and client ID (https://discord.com/developers/applications/)
-- osu!api key (https://osu.ppy.sh/p/api/)
-- node-canvas dependencies (https://github.com/Automattic/node-canvas#compiling)
+- Node.js 14 or higher
+- node-gyp — [installation guide](https://github.com/nodejs/node-gyp#installation)
+- gcc/g++ (e.g. `sudo apt install build-essential` on Ubuntu)
+- node-canvas dependencies — [installation guide](https://github.com/Automattic/node-canvas#compiling)
+- Discord bot token and client ID — [Discord Developer Portal](https://discord.com/developers/applications/)
+- osu! OAuth credentials (client ID + secret) — [osu! account settings](https://osu.ppy.sh/home/account/edit#oauth)
 
 ### Setup
 
-**Clone the repo and enter the bot directory**
+```bash
+git clone https://github.com/fransogrt/flowabot.git
+cd flowabot
+npm install
+```
 
-    git clone https://github.com/LeaPhant/flowabot.git
-    cd flowabot
+Run the configuration wizard:
 
----
-**Install all modules**
+```bash
+npm run config
+```
 
-    npm i
+Follow the prompts. Press Enter to skip optional features.
 
+Start the bot:
 
----
+```bash
+npm start
+```
 
-**Now you'll be able to use the configuration wizard.**
+If you provided a Discord client ID during config, you'll get an invite link to add the bot to your server.
 
-    npm run config
-    
-*Follow the on-screen instructions, just press enter without typing anything for features you don't need.*
+### Optional: grade emojis
 
----
+Upload S/A/B rank emojis to a server the bot has access to:
 
-**You should be able to run the bot now.**
+```bash
+npm run emojis
+```
 
-    npm start
-    
-*If you provided a Discord client ID during the configuration you will receive an invite link to add the bot to your server.*
+### Optional: run in background (Linux)
 
----
+```bash
+npm install -g pm2
+pm2 start npm --name flowabot -- start
+pm2 save && pm2 startup
+```
 
-**Make the grade emojis work (S rank, A rank, etc.)**
+### Optional credentials
 
-    npm run emojis
-    
-*This script will automatically upload the grade emojis to a server you'll have to pick. If there are no free emoji slots create a new server just for the bot to use its emojis from.*
+Some commands require additional API keys set in `config.json`:
 
----
-
-**To keep the bot running in the background [install pm2](http://pm2.keymetrics.io/docs/usage/quick-start/) and run**
-
-    pm2 start npm --name flowabot -- start
-    
-**To start the bot on system boot use**
-
-    pm2 save
-    pm2 startup
-    
-*(This is only tested on Linux)*
-
-<h2 align="center">Patrons</h2>
-
-Thanks to anyone supporting me on [Patreon](https://www.patreon.com/LeaPhant), especialy the following peeps who decided to leave $5 or more per month 😳 
-
-**WitchOfFrost**
+| Key | Command | Where to get |
+|-----|---------|--------------|
+| `credentials.riot_api_key` | `;lol` | [Riot Developer Portal](https://developer.riotgames.com/) |
+| `credentials.henrikdev_key` | `;val` | [Henrik Dev API](https://docs.henrikdev.xyz/) |
