@@ -187,7 +187,7 @@ module.exports = {
                     let avg_k = (kills   / kda_games).toFixed(1);
                     let avg_d = (deaths  / kda_games).toFixed(1);
                     let avg_a = (assists / kda_games).toFixed(1);
-                    let kda    = deaths > 0 ? (kills + assists) / deaths : kills.toFixed(2);
+                    let kda    = deaths > 0 ? ((kills + assists) / deaths).toFixed(2) : kills.toFixed(2);
                     fields.push({
                         name: `KDA (last ${kda_games} ranked)`,
                         value: `**${kda} KDA** (${avg_k} / ${avg_d} / ${avg_a})`,
