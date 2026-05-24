@@ -168,8 +168,12 @@ module.exports = {
                         : 'Unranked';
                     fields.push({ name: 'Rank', value: rank_val, inline: true });
 
-                    if (peak?.patched_tier)
-                        fields.push({ name: 'Peak', value: peak.patched_tier, inline: true });
+                    if (peak?.patched_tier) {
+                        let peak_val = peak.season
+                            ? `${peak.patched_tier} *(${peak.season.toUpperCase()})*`
+                            : peak.patched_tier;
+                        fields.push({ name: 'Peak', value: peak_val, inline: true });
+                    }
                 }
 
                 if (matches.length > 0) {
