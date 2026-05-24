@@ -186,7 +186,7 @@ module.exports = {
                     let hs_pct = total_shots > 0 ? ((hs / total_shots) * 100).toFixed(1) : '0.0';
                     let win_pct = games > 0 ? ((wins / games) * 100).toFixed(0) : '0';
 
-                    fields.push({ name: 'KDA', value: `${avg_k} / ${avg_d} / ${avg_a} *(${kd} KD)*`, inline: true });
+                    fields.push({ name: 'KDA', value: `**${kd} KD** (${avg_k} / ${avg_d} / ${avg_a})`, inline: true });
                     fields.push({ name: 'HS%', value: `${hs_pct}%`, inline: true });
                     fields.push({ name: 'Win%', value: `${win_pct}% *(${wins}/${games})*`, inline: true });
                 } else {
