@@ -123,21 +123,29 @@ module.exports = {
                 }
 
                 let summoner = await summoner_res.json();
+
+                // Step 3: ranked by PUUID + last 20 ranked match IDs in parallel
+                let [ranked_res, match_ids_res] = await Promise.all([
+                    fetch(`https://${platform}.api.riotgames.com/lol/league/v4/entries/by-puuid/${puuid}`, { headers }),
+                    fetch(`https://${routing}.api.riotgames.com/lol/match/v5/matches/by-puuid/${puuid}/ids?queue=420&count=20`, { headers })
+                ]);
+
+                let ranked = ranked_res.ok ? await ranked_res.json() : [];
                 let match_ids = match_ids_res.ok ? await match_ids_res.json() : [];
 
-                // Step 3: ranked entries + match details in parallel
-                let requests = [
-                    fetch(`https://${platform}.api.riotgames.com/lol/league/v4/entries/by-summoner/${summoner.id}`, { headers }),
-                    ...match_ids.map(id =>
-                        fetch(`https://${routing}.api.riotgames.com/lol/match/v5/matches/${id}`, { headers })
-                    )
-                ];
+                let solo = ranked.find(e => e.queueType === 'RANKED_SOLO_5x5') || null;
+                let flex = ranked.find(e => e.queueType === 'RANKED_FLEX_SR') || null;
 
-                let responses = await Promise.all(requests);
-                let ranked = responses[0].ok ? await responses[0].json() : [];
-                let match_details = (await Promise.all(
-                    responses.slice(1).map(r => r.ok ? r.json() : null)
-                )).filter(Boolean);
+                // Fetch match details in parallel
+                let match_details = [];
+                if (match_ids.length > 0) {
+                    match_details = (await Promise.all(
+                        match_ids.map(id =>
+                            fetch(`https://${routing}.api.riotgames.com/lol/match/v5/matches/${id}`, { headers })
+                                .then(r => r.ok ? r.json() : null)
+                        )
+                    )).filter(Boolean);
+                }
 
                 let solo = ranked.find(e => e.queueType === 'RANKED_SOLO_5x5') || null;
                 let flex = ranked.find(e => e.queueType === 'RANKED_FLEX_SR') || null;
