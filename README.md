@@ -49,3 +49,7 @@ Some commands require additional API keys set in `config.json`:
 |-----|---------|--------------|
 | `credentials.riot_api_key` | `;lol` | [Riot Developer Portal](https://developer.riotgames.com/) |
 | `credentials.henrikdev_key` | `;val` | [Henrik Dev API](https://docs.henrikdev.xyz/) |
+
+---
+
+##### Credits to original creator of the bot: [COMMANDS](https://github.com/LeaPhant/flowabot)
