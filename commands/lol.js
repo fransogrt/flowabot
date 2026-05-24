@@ -48,7 +48,7 @@ function tierValue(tier, division) {
 
 const ROMAN_TO_DIV = { 'I': 1, 'II': 2, 'III': 3, 'IV': 4 };
 
-function getPeak(previous_seasons, current_entry) {
+function getPeak(previous_seasons, games_peak) {
     let best = null, best_val = -1;
 
     for (let s of previous_seasons) {
@@ -60,18 +60,48 @@ function getPeak(previous_seasons, current_entry) {
         }
     }
 
-    // Also consider current season rank
-    if (current_entry) {
-        let div = ROMAN_TO_DIV[current_entry.rank] || 0;
-        let val = tierValue(current_entry.tier, div);
+    // Also consider current season peak from games history
+    if (games_peak) {
+        let val = tierValue(games_peak.tier, games_peak.division);
         if (val > best_val) {
             best = {
-                tier: current_entry.tier,
-                division: div,
-                lp: current_entry.leaguePoints,
+                tier: games_peak.tier,
+                division: games_peak.division,
+                lp: games_peak.lp,
                 season_id: null
             };
         }
+    }
+
+    return best;
+}
+
+async function fetchOpggPeak(region, summoner_id) {
+    let best = null, best_val = -1;
+    let cursor = null;
+
+    for (let page = 0; page < 20; page++) {
+        let url = `https://lol-api-summoner.op.gg/api/${region}/summoners/${summoner_id}/games?hl=en_US&limit=20`;
+        if (cursor) url += `&ended_at=${encodeURIComponent(cursor)}`;
+
+        let res = await fetch(url);
+        if (!res.ok) break;
+        let data = await res.json();
+        let games = data.data || [];
+        let meta  = data.meta || {};
+
+        if (games.length === 0) break;
+
+        for (let g of games) {
+            let p = g.participants?.find(x => x.summoner?.summoner_id === summoner_id);
+            if (!p?.tier_info) continue;
+            let ti = p.tier_info;
+            let v  = tierValue(ti.tier, ti.division);
+            if (v > best_val) { best_val = v; best = ti; }
+        }
+
+        cursor = meta.last_game_created_at;
+        if (!cursor) break;
     }
 
     return best;
@@ -87,6 +117,7 @@ function formatPeak(peak, season_map) {
     if (!peak) return null;
     let tier = capitalize(peak.tier);
     let div = NO_DIV_TIERS.includes(peak.tier.toUpperCase()) ? '' : ` ${['I','II','III','IV'][peak.division - 1]}`;
+    if (peak.season_id === null) return `${tier}${div} — ${peak.lp} LP`;
     let year = season_map[peak.season_id] ? ` *(${season_map[peak.season_id]})*` : '';
     return `${tier}${div} — ${peak.lp} LP${year}`;
 }
@@ -193,9 +224,9 @@ module.exports = {
                     for (let s of seasons_raw.data)
                         season_map[s.id] = s.display_value;
 
-                // Step 3: match details + op.gg summary in parallel
+                // Step 3: match details + op.gg summary + op.gg games peak in parallel
                 let opgg_summoner = opgg_data?.data?.[0];
-                let [match_details_raw, opgg_summary_res] = await Promise.all([
+                let [match_details_raw, opgg_summary_res, games_peak] = await Promise.all([
                     Promise.all(
                         match_ids.map(id =>
                             fetch(`https://${routing}.api.riotgames.com/lol/match/v5/matches/${id}`, { headers })
@@ -204,6 +235,9 @@ module.exports = {
                     ),
                     opgg_summoner
                         ? fetch(`https://lol-api-summoner.op.gg/api/${region}/summoners/${opgg_summoner.summoner_id}/summary?hl=en_US`)
+                        : Promise.resolve(null),
+                    opgg_summoner && mode === 'solo'
+                        ? fetchOpggPeak(region, opgg_summoner.summoner_id)
                         : Promise.resolve(null)
                 ]);
 
@@ -214,7 +248,7 @@ module.exports = {
                 if (opgg_summary_res?.ok) {
                     let opgg_summary = await opgg_summary_res.json();
                     let prev = opgg_summary?.data?.summoner?.previous_seasons || [];
-                    peak = getPeak(prev, mode === 'solo' ? entry : null);
+                    peak = getPeak(prev, games_peak);
                 }
 
                 // KDA from match details
