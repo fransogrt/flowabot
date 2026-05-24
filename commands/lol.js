@@ -46,8 +46,11 @@ function tierValue(tier, division) {
     return t * 10 + (NO_DIV_TIERS.includes(tier?.toUpperCase()) ? 4 : (4 - division));
 }
 
-function getPeak(previous_seasons) {
+const ROMAN_TO_DIV = { 'I': 1, 'II': 2, 'III': 3, 'IV': 4 };
+
+function getPeak(previous_seasons, current_entry) {
     let best = null, best_val = -1;
+
     for (let s of previous_seasons) {
         let t = s.tier_info;
         let val = tierValue(t.tier, t.division);
@@ -56,6 +59,21 @@ function getPeak(previous_seasons) {
             best = { ...t, season_id: s.season_id };
         }
     }
+
+    // Also consider current season rank
+    if (current_entry) {
+        let div = ROMAN_TO_DIV[current_entry.rank] || 0;
+        let val = tierValue(current_entry.tier, div);
+        if (val > best_val) {
+            best = {
+                tier: current_entry.tier,
+                division: div,
+                lp: current_entry.leaguePoints,
+                season_id: null
+            };
+        }
+    }
+
     return best;
 }
 
@@ -196,7 +214,7 @@ module.exports = {
                 if (opgg_summary_res?.ok) {
                     let opgg_summary = await opgg_summary_res.json();
                     let prev = opgg_summary?.data?.summoner?.previous_seasons || [];
-                    peak = getPeak(prev);
+                    peak = getPeak(prev, mode === 'solo' ? entry : null);
                 }
 
                 // KDA from match details
