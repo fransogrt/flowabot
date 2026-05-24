@@ -147,9 +147,6 @@ module.exports = {
                     )).filter(Boolean);
                 }
 
-                let solo = ranked.find(e => e.queueType === 'RANKED_SOLO_5x5') || null;
-                let flex = ranked.find(e => e.queueType === 'RANKED_FLEX_SR') || null;
-
                 // KDA from ranked matches
                 let kills = 0, deaths = 0, assists = 0, kda_games = 0;
                 for (let match of match_details) {
