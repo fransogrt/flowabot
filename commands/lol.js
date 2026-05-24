@@ -111,11 +111,11 @@ module.exports = {
                 let account = await account_res.json();
                 let { puuid } = account;
 
-                // Step 2: summoner + recent ranked match IDs in parallel
-                let [summoner_res, match_ids_res] = await Promise.all([
-                    fetch(`https://${platform}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`, { headers }),
-                    fetch(`https://${routing}.api.riotgames.com/lol/match/v5/matches/by-puuid/${puuid}/ids?queue=420&count=10`, { headers })
-                ]);
+                // Step 2: summoner only
+                let summoner_res = await fetch(
+                    `https://${platform}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`,
+                    { headers }
+                );
 
                 if (!summoner_res.ok) {
                     reject(`Summoner not found on **${region.toUpperCase()}**.`);
