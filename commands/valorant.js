@@ -1,5 +1,6 @@
 const fetch = require('node-fetch');
 const helper = require('../helper.js');
+const config = require('../config.json');
 
 function parseRiotId(argv) {
     let full = argv.slice(1).join(' ');
@@ -37,6 +38,7 @@ module.exports = {
         run: "valorant TenZ#000",
         result: "Returns TenZ's Valorant rank and stats."
     },
+    configRequired: ['credentials.henrikdev_key'],
     call: obj => {
         return new Promise(async (resolve, reject) => {
             let { argv } = obj;
@@ -51,19 +53,26 @@ module.exports = {
             let enc_name = encodeURIComponent(name);
             let enc_tag = encodeURIComponent(tag);
 
+            let headers = { 'Authorization': config.credentials.henrikdev_key };
+
             try {
-                let account_res = await fetch(`https://api.henrikdev.xyz/valorant/v1/account/${enc_name}/${enc_tag}`);
+                let account_res = await fetch(`https://api.henrikdev.xyz/valorant/v1/account/${enc_name}/${enc_tag}`, { headers });
                 let account_data = await account_res.json();
 
-                if (account_data.status !== 200) {
+                if (account_res.status === 404 || (account_data.errors && account_data.errors[0]?.status === 404)) {
                     reject(`Player **${name}#${tag}** not found.`);
+                    return;
+                }
+
+                if (!account_res.ok) {
+                    reject(`Henrik API error: ${account_data.errors?.[0]?.message || account_res.status}`);
                     return;
                 }
 
                 let account = account_data.data;
                 let region = account.region.toLowerCase();
 
-                let mmr_res = await fetch(`https://api.henrikdev.xyz/valorant/v2/mmr/${region}/${enc_name}/${enc_tag}`);
+                let mmr_res = await fetch(`https://api.henrikdev.xyz/valorant/v2/mmr/${region}/${enc_name}/${enc_tag}`, { headers });
                 let mmr_data = await mmr_res.json();
 
                 let current = mmr_data.data?.current_data;
