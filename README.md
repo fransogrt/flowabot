@@ -2,7 +2,7 @@
 
 Discord bot focused on osu! features. Shows scorecards, stat lookups, beatmap renders, pp calculations, and more. Also supports League of Legends and Valorant profile commands.
 
-Full command list: [COMMANDS.md](COMMANDS.md)
+Full command list: [COMMANDS](COMMANDS.md)
 
 ---
 
@@ -40,22 +40,6 @@ npm start
 ```
 
 If you provided a Discord client ID during config, you'll get an invite link to add the bot to your server.
-
-### Optional: grade emojis
-
-Upload S/A/B rank emojis to a server the bot has access to:
-
-```bash
-npm run emojis
-```
-
-### Optional: run in background (Linux)
-
-```bash
-npm install -g pm2
-pm2 start npm --name flowabot -- start
-pm2 save && pm2 startup
-```
 
 ### Optional credentials
 
