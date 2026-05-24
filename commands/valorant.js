@@ -197,7 +197,7 @@ module.exports = {
 
                 let season_label = current_season ? current_season.toUpperCase() : 'current season';
                 let mode_label = mode.charAt(0).toUpperCase() + mode.slice(1);
-                embed.footer = { text: `${region.toUpperCase()} · ${season_label} · ${mode_label} · via henrikdev` };
+                embed.footer = { text: `${region.toUpperCase()} · ${season_label} · ${mode_label} · 30req/min` };
 
                 resolve({ embeds: [embed] });
 
