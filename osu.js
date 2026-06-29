@@ -952,10 +952,12 @@ async function getScore(recent_raw, cb){
                     frames = ur_response.frames;
                 }
 
-                strains_bar = await module.exports.get_strains_bar(beatmap_path, recent.mods.map(mod => mod.acronym).join(''), recent.fail_percent, recent.beatmapset_id, frames);
+                if(score_mode === 'osu') {
+                    strains_bar = await module.exports.get_strains_bar(beatmap_path, recent.mods.map(mod => mod.acronym).join(''), recent.fail_percent, recent.beatmapset_id, frames);
 
-                if(strains_bar)
-                    recent.strains_bar = true;
+                    if(strains_bar)
+                        recent.strains_bar = true;
+                }
             }
 
             cb(null, recent, strains_bar);
