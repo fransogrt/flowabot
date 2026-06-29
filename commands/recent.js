@@ -63,20 +63,18 @@ module.exports = {
                         helper.updateLastBeatmap(recent, msg.channel.id, last_beatmap);
 
                         if(ur_promise){
-                            resolve({
-                                embeds: [embed],
-                                files: [{attachment: strains_bar, name: 'strains_bar.png'}],
-                                edit_promise: new Promise((resolve, reject) => {
-                                    ur_promise.then(recent => {
-                                        embed = osu.format_embed(recent);
-                                        resolve({ embeds: [embed] });
-                                    });
-                                })});
+                            let res = { embeds: [embed], edit_promise: new Promise((resolve, reject) => {
+                                ur_promise.then(recent => {
+                                    embed = osu.format_embed(recent);
+                                    resolve({ embeds: [embed] });
+                                });
+                            })};
+                            if(strains_bar) res.files = [{attachment: strains_bar, name: 'strains_bar.png'}];
+                            resolve(res);
                         }else{
-                            resolve({
-                                embeds: [embed],
-                                files: [{attachment: strains_bar, name: 'strains_bar.png'}]
-                            });
+                            let res = { embeds: [embed] };
+                            if(strains_bar) res.files = [{attachment: strains_bar, name: 'strains_bar.png'}];
+                            resolve(res);
                         }
                     }
                 });
