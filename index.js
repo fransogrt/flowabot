@@ -49,6 +49,12 @@ if(helper.getItem('last_message')){
 	helper.setItem('last_message', JSON.stringify(last_message));
 }
 
+function isBlacklisted(user_id) {
+    let raw = helper.getItem('blacklist');
+    if (!raw) return false;
+    return JSON.parse(raw).includes(user_id);
+}
+
 if(config.credentials.client_id && config.credentials.client_secret)
     osu.init(client, config.credentials.client_id, config.credentials.client_secret, last_beatmap);
 
@@ -210,6 +216,8 @@ function onMessage(msg){
 
     if(config.debug)
         helper.log(msg.author.username, ':', msg.content);
+
+    if (isBlacklisted(msg.author.id)) return;
 
     commands.forEach(command => {
         let check_command = checkCommand(msg, command);
