@@ -754,7 +754,8 @@ async function getScore(recent_raw, cb){
 		recent.pp = Number(recent_raw.pp);
 	}
 
-    let score_mode = recent_raw.mode || 'osu';
+    const RULESET_MODES = ['osu', 'taiko', 'fruits', 'mania'];
+    let score_mode = RULESET_MODES[recent_raw.ruleset_id] ?? recent_raw.mode ?? 'osu';
     let requests = [
         api.get(`/users/${recent_raw.user_id}/scores/best`, { params: { limit: 100, mode: score_mode } }),
         api.get(`/users/${recent_raw.user_id}/scores/best`, { params: { limit: 100, offset: 100, mode: score_mode } }),
