@@ -898,6 +898,7 @@ async function getScore(recent_raw, cb){
 
             recent = Object.assign({
                 approved: beatmapset.status,
+                cover_url: beatmapset.covers['cover@2x'] || beatmapset.covers['cover'],
                 beatmapset_id: beatmapset.id,
                 artist: beatmapset.artist,
                 title: beatmapset.title,
@@ -1413,9 +1414,9 @@ module.exports = {
             embed.description = `**__#${recent.pb} Top Play!__** 👀`;
 
 		if(recent.strains_bar){
-			embed.image = {
-				url: 'attachment://strains_bar.png'
-			};
+			embed.image = { url: 'attachment://strains_bar.png' };
+		} else if(recent.cover_url) {
+			embed.image = { url: recent.cover_url };
 		}
 
         let ranked_text = 'Last updated';
