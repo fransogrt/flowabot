@@ -2,7 +2,7 @@ const osu = require('../osu.js');
 const helper = require('../helper.js');
 
 module.exports = {
-    command: ['recent', 'rs', 'recentpass', 'rp'],
+    command: ['recent', 'rs', 'recentpass', 'rp', 'rst', 'rpt', 'recenttaiko', 'rsc', 'rpc', 'recentcatch', 'rsm', 'rpm', 'recentmania'],
     description: "Show recent score or pass.",
     startsWith: true,
     usage: '[username]',
@@ -34,6 +34,13 @@ module.exports = {
 
             let pass = argv[0].toLowerCase().startsWith('rp') || argv[0].toLowerCase().startsWith('recentpass');
 
+            const MODE_COMMANDS = {
+                rst: 'taiko', rpt: 'taiko', recenttaiko: 'taiko',
+                rsc: 'fruits', rpc: 'fruits', recentcatch: 'fruits',
+                rsm: 'mania', rpm: 'mania', recentmania: 'mania',
+            };
+            let mode = MODE_COMMANDS[command] || 'osu';
+
             let index = 1;
             let match = argv[0].match(/\d+/);
             let _index = match > 0 ? match[0] : 1;
@@ -47,7 +54,7 @@ module.exports = {
                 else
                     reject(helper.commandHelp('recent'));
             }else{
-                osu.get_recent({user: recent_user, pass: pass, index: index}, (err, recent, strains_bar, ur_promise) => {
+                osu.get_recent({user: recent_user, pass: pass, index: index, mode: mode}, (err, recent, strains_bar, ur_promise) => {
                     if(err){
                         helper.error(err);
                         reject(err);

@@ -754,17 +754,18 @@ async function getScore(recent_raw, cb){
 		recent.pp = Number(recent_raw.pp);
 	}
 
+    let score_mode = recent_raw.mode || 'osu';
     let requests = [
-        api.get(`/users/${recent_raw.user_id}/scores/best`, { params: { limit: 100 } }),
-        api.get(`/users/${recent_raw.user_id}/scores/best`, { params: { limit: 100, offset: 100 } }),
+        api.get(`/users/${recent_raw.user_id}/scores/best`, { params: { limit: 100, mode: score_mode } }),
+        api.get(`/users/${recent_raw.user_id}/scores/best`, { params: { limit: 100, offset: 100, mode: score_mode } }),
         //api.get(`/beatmaps/${recent_raw.beatmap.id}/scores`, { params: { mode: 'osu' } }),
         //api.get(`/beatmaps/${recent_raw.beatmap.id}/scores/users/${recent_raw.user_id}`, { params: { mods: recent_raw.mods } }),
-        api.get(`/users/${recent_raw.user_id}/osu`),
+        api.get(`/users/${recent_raw.user_id}/${score_mode}`),
         api.get(`/beatmapsets/${recent_raw.beatmapset.id}`)
     ];
 
     try {
-        const response = await api.get(`/beatmaps/${recent_raw.beatmap.id}/scores/users/${recent_raw.user_id}`)
+        const response = await api.get(`/beatmaps/${recent_raw.beatmap.id}/scores/users/${recent_raw.user_id}`, { params: { mode: score_mode } })
         best_score = response.data.score
         best_score.position = response.data.position
     } catch(e) {
@@ -1586,7 +1587,7 @@ module.exports = {
         let { user_id, error } = await getUserId(options.user);
         if(error) { cb("Couldn't reach osu!api. 💀") }
 
-        api.get(`/users/${user_id}/scores/recent`, { params: { limit: limit, include_fails: pass, mode: "osu" } }).then(response => {
+        api.get(`/users/${user_id}/scores/recent`, { params: { limit: limit, include_fails: pass, mode: options.mode || 'osu' } }).then(response => {
 
             response = response.data;
             //console.log(response)
