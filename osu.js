@@ -386,7 +386,7 @@ function getDifficultyAttribs(results){
 }
 function calculateAccuracy(stats) {
     const acc = (300 * (stats.great ?? 0) + 100 * (stats.ok ?? 0) + 50 * (stats.meh ?? 0)) / (300 * totalHits(stats))
-    return acc * 100;
+    return totalHits(stats) > 0 ? acc * 100 : 0;
 }
 
 function totalHits(stats) {
@@ -394,15 +394,94 @@ function totalHits(stats) {
     return hits;
 }
 
-function calculateCsArOdHp(cs_raw, ar_raw, od_raw, hp_raw, mods_enabled){
-	var speed = 1, ar_multiplier = 1, ar, ar_ms;
-    let mods = mods_enabled.map(x => x.acronym)
+// Centralized clock-rate helper: single source of truth for DT/NC/HT/DC
+// (including custom speed_change from mod settings).
+function getClockRate(mods_enabled) {
+    if (!Array.isArray(mods_enabled))
+        return 1;
+    if (mods_enabled.some(m => m.acronym === "DT" || m.acronym === "NC"))
+        return mods_enabled.find(m => m.acronym === "DT" || m.acronym === "NC").settings?.speed_change ?? 1.5;
+    if (mods_enabled.some(m => m.acronym === "HT" || m.acronym === "DC"))
+        return mods_enabled.find(m => m.acronym === "HT" || m.acronym === "DC").settings?.speed_change ?? 0.75;
+    return 1;
+}
 
-    if (mods.includes("DT") || mods.includes("NC")) {
-        speed *= mods_enabled.filter(mod => mod.acronym == "DT" || mod.acronym == "NC")[0].settings?.speed_change ?? 1.5;
-    } else if (mods.includes("HT") || mods.includes("DC")) {
-        speed *= mods_enabled.filter(mod => mod.acronym == "HT" || mod.acronym == "DC")[0].settings?.speed_change ?? 0.75;
+function isLazerScore(score_raw) {
+    return !!score_raw?.build_id;
+}
+
+// Full-count params for the actual play (used by rosu Performance).
+function buildPlayParams(score_raw, speed) {
+    const params = {
+        lazer: isLazerScore(score_raw),
+        mods: score_raw.mods,
+        n300: score_raw.statistics.great ?? 0,
+        n100: score_raw.statistics.ok ?? 0,
+        n50: score_raw.statistics.meh ?? 0,
+        misses: score_raw.statistics.miss ?? 0,
+        combo: score_raw.max_combo,
+        clockRate: speed,
+    };
+
+    if (score_raw.statistics.large_tick_hit)
+        params.largeTickHits = score_raw.statistics.large_tick_hit;
+    if (score_raw.statistics.small_tick_hit)
+        params.smallTickHits = score_raw.statistics.small_tick_hit;
+    if (score_raw.statistics.slider_tail_hit)
+        params.sliderEndHits = score_raw.statistics.slider_tail_hit;
+    if (score_raw.legacy_total_score)
+        params.legacyTotalScore = score_raw.legacy_total_score;
+
+    return params;
+}
+
+// FC params: misses become 300s, combo/max ticks default to perfect
+// (so omit misses/combo/ticks/legacy score and let rosu assume full).
+function buildFcParams(score_raw, speed) {
+    return {
+        lazer: isLazerScore(score_raw),
+        mods: score_raw.mods,
+        clockRate: speed,
+        n300: (score_raw.statistics.great ?? 0) + (score_raw.statistics.miss ?? 0),
+        n100: score_raw.statistics.ok ?? 0,
+        n50: score_raw.statistics.meh ?? 0,
+        misses: 0,
+    };
+}
+
+// Accuracy if the same 100s/50s were kept but misses became 300s (FC).
+function calculateFcAccuracy(statistics) {
+    return calculateAccuracy({
+        great: (statistics.great ?? 0) + (statistics.miss ?? 0),
+        ok: statistics.ok ?? 0,
+        meh: statistics.meh ?? 0,
+    });
+}
+
+const ROSU_GAMEMODE_BY_SCORE_MODE = {
+    osu: 'Osu',
+    taiko: 'Taiko',
+    fruits: 'Catch',
+    mania: 'Mania',
+};
+
+function convertRosuMapToMode(rosu_map, score_mode) {
+    if (!score_mode || score_mode === 'osu')
+        return;
+    const modeName = ROSU_GAMEMODE_BY_SCORE_MODE[score_mode];
+    const gameMode = modeName && rosu.GameMode ? rosu.GameMode[modeName] : undefined;
+    if (gameMode !== undefined) {
+        try {
+            rosu_map.convert(gameMode);
+        } catch (e) {
+            helper.log(`rosu convert to ${score_mode} failed, using osu map`);
+        }
     }
+}
+
+function calculateCsArOdHp(cs_raw, ar_raw, od_raw, hp_raw, mods_enabled){
+	var speed = getClockRate(mods_enabled), ar_multiplier = 1, ar, ar_ms;
+    let mods = mods_enabled.map(x => x.acronym)
 
 	if(mods.includes("HR")){
 		ar_multiplier *= 1.4;
@@ -835,13 +914,7 @@ async function getScore(recent_raw, cb){
             })
         }
 
-        let speed = 1;
-
-        if (recent.mods.map(x => x.acronym).includes("DT") || recent.mods.map(x => x.acronym).includes("NC")) {
-            speed *= recent.mods.filter(mod => mod.acronym == "DT" || mod.acronym == "NC")[0].settings?.speed_change ?? 1.5;
-        } else if (recent.mods.map(x => x.acronym).includes("HT") || recent.mods.map(x => x.acronym).includes("DC")) {
-            speed *= recent.mods.filter(mod => mod.acronym == "HT" || mod.acronym == "DC")[0].settings?.speed_change ?? 0.75;
-        }
+        let speed = getClockRate(recent.mods);
 
         let fail_percent = 1;
 
@@ -850,44 +923,17 @@ async function getScore(recent_raw, cb){
 
         helper.downloadBeatmap(recent_raw.beatmap.id).finally(async () => {
             let beatmap_path = path.resolve(config.osu_cache_path, `${recent_raw.beatmap.id}.osu`);
-			const beatmap_content = await fs.readFile(beatmap_path, 'utf8');
+            const beatmap_content = await fs.readFile(beatmap_path, 'utf8');
 
-            const set_on_lazer = recent_raw.build_id ? true : false;
+            const play_params = buildPlayParams(recent_raw, speed);
 
-            const play_params = {
-                lazer: set_on_lazer,
-                mods: recent_raw.mods,
-                n300: recent_raw.statistics.great ?? 0,
-                n100: recent_raw.statistics.ok ?? 0,
-                n50: recent_raw.statistics.meh ?? 0,
-                misses: recent_raw.statistics.miss ?? 0,
-                combo: recent_raw.max_combo,
-                clockRate: speed,
-            }
-
-			if (recent_raw.statistics.large_tick_hit)
-				play_params.largeTickHits = recent_raw.statistics.large_tick_hit;
-
-			if (recent_raw.statistics.slider_tail_hit)
-				play_params.sliderEndHits = recent_raw.statistics.slider_tail_hit;
-
-            if (recent_raw.legacy_total_score) {
-                play_params.legacyTotalScore = recent_raw.legacy_total_score
-            }
-
-            const fc_play_params = {
-                lazer: set_on_lazer,
-                mods: recent_raw.mods,
-                clockRate: speed,
-                n300: (recent_raw.statistics.great ?? 0) + (recent_raw.statistics.miss ?? 0),
-                n100: recent_raw.statistics.ok ?? 0,
-                n50: recent_raw.statistics.meh ?? 0,
-            }
+            const fc_play_params = buildFcParams(recent_raw, speed);
 
 
             const rosu_map = new rosu.Beatmap(beatmap_content)
+            convertRosuMapToMode(rosu_map, score_mode);
 			const play = new rosu.Performance(play_params).calculate(rosu_map);
-			const fc_play = new rosu.Performance(fc_play_params).calculate(rosu_map);
+			const fc_play = score_mode === 'osu' ? new rosu.Performance(fc_play_params).calculate(rosu_map) : null;
 			const attributes = new rosu.BeatmapAttributesBuilder({
 				map: rosu_map,
 				mods: recent_raw.mods,
@@ -921,13 +967,9 @@ async function getScore(recent_raw, cb){
 
             recent = Object.assign({
                 stars: play.difficulty.stars,
-                pp_fc: fc_play.pp,
+                pp_fc: fc_play ? fc_play.pp : null,
                 acc: recent_raw.accuracy * 100,
-                acc_fc: calculateAccuracy({ 
-                    great: recent_raw.statistics.great ?? 0,
-                    ok: recent_raw.statistics.ok ?? 0,
-                    meh: recent_raw.statistics.meh ?? 0,
-                }),
+                acc_fc: score_mode === 'osu' ? calculateFcAccuracy(recent_raw.statistics) : null,
             }, recent);
 
             if(recent.pp == null || process.env.ALWAYS_CALCULATE == "1")
@@ -1472,9 +1514,9 @@ module.exports = {
             lines[0] += `${score_string}`;
         }
 
-        if(recent.pp_fc.toFixed(2) != recent.pp.toFixed(2))
+        if(recent.pp_fc != null && recent.pp != null && recent.acc_fc != null && recent.pp_fc.toFixed(2) != recent.pp.toFixed(2))
             lines[1] += `**${recent.unsubmitted ? '*' : ''}${+recent.pp.toFixed(2)}pp**${recent.unsubmitted ? '*' : ''} ➔ ${+recent.pp_fc.toFixed(2)}pp for ${+recent.acc_fc.toFixed(2)}% FC`;
-        else
+        else if(recent.pp != null)
             lines[1] += `**${+recent.pp.toFixed(2)}pp**`
 
          lines[1] += `${helper.sep}<t:${DateTime.fromISO(recent.date).toSeconds()}:R>\n`;
@@ -1557,8 +1599,9 @@ module.exports = {
         //     lines[3] += '**';
 
 
-        lines[3] += ' BPM ~ ';
-        lines[3] += `**${+recent.stars.toFixed(2)}**★`;
+        lines[3] += ' BPM';
+        if(recent.stars != null)
+            lines[3] += ` ~ **${+recent.stars.toFixed(2)}**★`;
 
 		let mod_settings_value = getModSettingsString(recent.mods);
 
@@ -1795,25 +1838,13 @@ module.exports = {
 
             top.accuracy = (top.accuracy * 100).toFixed(2);
 
-            let speed = 1;
-
-            if (top.mods.map(x => x.acronym).includes("DT") || top.mods.map(x => x.acronym).includes("NC")) {
-                speed *= top.mods.filter(mod => mod.acronym == "DT" || mod.acronym == "NC")[0].settings?.speed_change ?? 1.5;
-            } else if (top.mods.map(x => x.acronym).includes("HT") || top.mods.map(x => x.acronym).includes("DC")) {
-                speed *= top.mods.filter(mod => mod.acronym == "HT" || mod.acronym == "DC")[0].settings?.speed_change ?? 0.75;
-            }
+            let speed = getClockRate(top.mods);
 
             await helper.downloadBeatmap(top.beatmap.id)
             const beatmap_path = path.resolve(config.osu_cache_path, `${top.beatmap.id}.osu`);
 			const beatmap_content = await fs.readFile(beatmap_path, 'utf8');
 
-            const play_params = {
-                mods: top.mods,
-                n300: Number(top.statistics.great ?? 0 + top.statistics.miss ?? 0),
-                n100: Number(top.statistics.ok ?? 0),
-                n50: Number(top.statistics.meh ?? 0),
-                clockRate: speed,
-            }
+            const play_params = buildFcParams(top, speed);
 
             const rosu_map = new rosu.Beatmap(beatmap_content);
 			const pp_fc = new rosu.Performance(play_params).calculate(rosu_map);
@@ -1822,7 +1853,7 @@ module.exports = {
 
             top.stars = pp_fc.difficulty.stars;
             top.pp_fc = pp_fc.pp;
-            top.acc_fc = calculateAccuracy({great: play_params.n300, ok: play_params.n100, meh: play_params.n50}).toFixed(2);
+            top.acc_fc = calculateFcAccuracy(top.statistics).toFixed(2);
             top.rank_emoji = getRankEmoji(top.rank);
         }
 
@@ -1853,25 +1884,13 @@ module.exports = {
 
             pin.accuracy = (pin.accuracy * 100).toFixed(2);
 
-            let speed = 1;
-
-            if (pin.mods.map(x => x.acronym).includes("DT") || pin.mods.map(x => x.acronym).includes("NC")) {
-                speed *= pin.mods.filter(mod => mod.acronym == "DT" || mod.acronym == "NC")[0].settings?.speed_change ?? 1.5;
-            } else if (pin.mods.map(x => x.acronym).includes("HT") || pin.mods.map(x => x.acronym).includes("DC")) {
-                speed *= pin.mods.filter(mod => mod.acronym == "HT" || mod.acronym == "DC")[0].settings?.speed_change ?? 0.75;
-            }
+            let speed = getClockRate(pin.mods);
 
             await helper.downloadBeatmap(pin.beatmap.id)
             const beatmap_path = path.resolve(config.osu_cache_path, `${pin.beatmap.id}.osu`);
 			const beatmap_content = await fs.readFile(beatmap_path, 'utf8');
 
-            const play_params = {
-                mods: pin.mods,
-                n300: Number(pin.statistics.great ?? 0 + pin.statistics.miss ?? 0),
-                n100: Number(pin.statistics.ok ?? 0),
-                n50: Number(pin.statistics.meh ?? 0),
-                clockRate: speed,
-            }
+            const play_params = buildFcParams(pin, speed);
 
             const rosu_map = new rosu.Beatmap(beatmap_content);
 			const pp_fc = new rosu.Performance(play_params).calculate(rosu_map);
@@ -1880,7 +1899,7 @@ module.exports = {
 
             pin.stars = pp_fc.difficulty.stars;
             pin.pp_fc = pp_fc.pp;
-            pin.acc_fc = calculateAccuracy({great: play_params.n300, ok: play_params.n100, meh: play_params.n50}).toFixed(2);
+            pin.acc_fc = calculateFcAccuracy(pin.statistics).toFixed(2);
             pin.rank_emoji = getRankEmoji(pin.rank);
 
         }
@@ -1912,25 +1931,13 @@ module.exports = {
 
             first.accuracy = (first.accuracy * 100).toFixed(2);
 
-            let speed = 1;
-
-            if (first.mods.map(x => x.acronym).includes("DT") || first.mods.map(x => x.acronym).includes("NC")) {
-                speed *= first.mods.filter(mod => mod.acronym == "DT" || mod.acronym == "NC")[0].settings?.speed_change ?? 1.5;
-            } else if (first.mods.map(x => x.acronym).includes("HT") || first.mods.map(x => x.acronym).includes("DC")) {
-                speed *= first.mods.filter(mod => mod.acronym == "HT" || mod.acronym == "DC")[0].settings?.speed_change ?? 0.75;
-            }
+            let speed = getClockRate(first.mods);
 
             await helper.downloadBeatmap(first.beatmap.id)
             const beatmap_path = path.resolve(config.osu_cache_path, `${first.beatmap.id}.osu`);
 			const beatmap_content = await fs.readFile(beatmap_path, 'utf8');
 
-            const play_params = {
-                mods: first.mods,
-                n300: Number(first.statistics.great ?? 0 + first.statistics.miss ?? 0),
-                n100: Number(first.statistics.ok ?? 0),
-                n50: Number(first.statistics.meh ?? 0),
-                clockRate: speed,
-            }
+            const play_params = buildFcParams(first, speed);
 
             const rosu_map = new rosu.Beatmap(beatmap_content);
 			const pp_fc = new rosu.Performance(play_params).calculate(rosu_map);
@@ -1939,7 +1946,7 @@ module.exports = {
 
             first.stars = pp_fc.difficulty.stars;
             first.pp_fc = pp_fc.pp;
-            first.acc_fc = calculateAccuracy({great: play_params.n300, ok: play_params.n100, meh: play_params.n50}).toFixed(2);
+            first.acc_fc = calculateFcAccuracy(first.statistics).toFixed(2);
             first.rank_emoji = getRankEmoji(first.rank);
         }
         
@@ -2024,19 +2031,7 @@ module.exports = {
 				})
 			};
 
-            let speed = 1;
-
-            const isDT = options.mods.find(m => {
-                return m.acronym === "DT"
-            })
-            const isHT = options.mods.find(m => {
-                return m.acronym === "HT"
-            })
-
-            if(isDT)
-                speed *= isDT.settings?.speed_change ?? 1.5;
-            else if(isHT)
-                speed *= isHT.settings?.speed_change ?? 0.75;;
+            let speed = getClockRate(options.mods);
 
             let bpm = beatmap.bpm * speed;
 
