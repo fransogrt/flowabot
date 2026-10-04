@@ -8,7 +8,6 @@
 - [;compare](#compare)
 - [;firsts](#firsts)
 - [;matchcosts](#matchcosts)
-- [;removed](#removed)
 - [;help](#help)
 - [;ign-set](#ign-set)
 - [;lazerscore](#lazerscore)
@@ -165,9 +164,6 @@ Returns your top 5 first places.
 ;firsts7 vaxei
 ```
 Returns Vaxei's top 7 first places.
-## ;removed
-
-**Usage**: `;removed`
 ## ;help
 Get help for a command.
 
