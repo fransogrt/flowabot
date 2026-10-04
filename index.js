@@ -13,6 +13,8 @@ const chalk = require('chalk');
 
 const osu = require('./osu.js');
 const helper = require('./helper.js');
+const dashboard_activity = require('./dashboard/activity.js');
+const dashboard_server = require('./dashboard/server.js');
 
 const client = new Client({ intents: Object.values(GatewayIntentBits), partials: Object.values(Partials) });
 
@@ -219,10 +221,19 @@ function onMessage(msg){
 
     if (isBlacklisted(msg.author.id)) return;
 
+    // dashboard activity feed: regular chat messages (commands are logged below)
+    if(msg.guild != null && !msg.author.bot && !msg.content.startsWith(config.prefix))
+        dashboard_activity.logDiscordEvent(msg, 'message', { content: msg.content });
+
     commands.forEach(command => {
         let check_command = checkCommand(msg, command);
 
         if(check_command === true){
+            dashboard_activity.logDiscordEvent(msg, 'command', {
+                command: Array.isArray(command.command) ? command.command[0] : command.command,
+                content: msg.content
+            });
+
             if(command.call && typeof command.call === 'function'){
                 let promise = command.call({
                     msg,
@@ -329,11 +340,19 @@ function onMessage(msg){
 client.on('messageCreate', onMessage);
 
 client.on('ready', () => {
-	helper.log('flowabot is ready');
-	if(config.credentials.discord_client_id)
-		helper.log(
-			`Invite bot to server: ${chalk.blueBright('https://discord.com/api/oauth2/authorize?client_id='
-			+ config.credentials.discord_client_id + '&permissions=8&scope=bot')}`);
+    helper.log('flowabot is ready');
+    if(config.credentials.discord_client_id)
+        helper.log(
+            `Invite bot to server: ${chalk.blueBright('https://discord.com/api/oauth2/authorize?client_id='
+            + config.credentials.discord_client_id + '&permissions=8&scope=bot')}`);
+
+    if(config.dashboard == null || config.dashboard.enabled !== false){
+        try{
+            dashboard_server.init({ client, commands, config });
+        }catch(err){
+            helper.error("Couldn't start dashboard: " + err);
+        }
+    }
 });
 
 client.login(config.credentials.bot_token).catch(err => {

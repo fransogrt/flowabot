@@ -65,6 +65,7 @@ typings/
 
 # localstorage
 scratch
+data
 
 # mac
 .DS_Store

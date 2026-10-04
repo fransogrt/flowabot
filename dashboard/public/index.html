@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>flowabot dashboard</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='42' fill='%235865f2'/%3E%3Ccircle cx='38' cy='42' r='9' fill='%23fff'/%3E%3Ccircle cx='64' cy='42' r='9' fill='%23fff'/%3E%3Crect x='34' y='62' width='34' height='8' rx='4' fill='%23fff'/%3E%3C/svg%3E">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div id="login-view" class="login-wrap hidden">
+        <form id="login-form" class="login-card" autocomplete="off">
+            <div class="login-logo">flowabot</div>
+            <div class="login-sub">dashboard</div>
+            <input type="password" id="login-password" placeholder="Password" autocomplete="current-password" autofocus>
+            <button type="submit" id="login-btn">Log in</button>
+            <div id="login-error" class="login-error"></div>
+        </form>
+    </div>
+
+    <div id="app-view" class="app hidden">
+        <aside class="sidebar">
+            <div class="brand">
+                <span class="brand-name">flowabot</span>
+                <span class="brand-sub">dashboard</span>
+            </div>
+            <nav id="nav">
+                <a href="#/overview" data-view="overview"><span class="nav-icon">&#9632;</span>Overview</a>
+                <a href="#/servers" data-view="servers"><span class="nav-icon">&#9881;</span>Servers</a>
+                <a href="#/activity" data-view="activity"><span class="nav-icon">&#9889;</span>Activity</a>
+                <a href="#/commands" data-view="commands"><span class="nav-icon">&#9998;</span>Commands</a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="bot-chip">
+                    <div class="bot-avatar-wrap"><img id="bot-avatar" alt="" src=""></div>
+                    <div class="bot-meta">
+                        <div id="bot-tag" class="bot-tag"></div>
+                        <div id="bot-status" class="bot-status"></div>
+                    </div>
+                </div>
+                <button id="logout-btn" class="ghost-btn">Log out</button>
+            </div>
+        </aside>
+        <main id="content" class="content"></main>
+    </div>
+
+    <script src="/app.js"></script>
+</body>
+</html>

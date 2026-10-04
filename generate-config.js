@@ -358,6 +358,50 @@
     config.credentials.twitch_client_id = value == 'none' ? "" : value;
 	config.credentials.twitch_client_secret = value2 == 'none' ? "" : value2;
 
+    if(!('dashboard' in config))
+        config.dashboard = {};
+
+    default_value = 'yes';
+
+    if(config.dashboard.enabled != null)
+        default_value = config.dashboard.enabled ? 'yes' : 'no';
+
+    console.log('');
+    console.log('(Optional) The web dashboard shows live activity per server and lets you send messages as the bot.');
+    value = readline.question(`Enable the web dashboard (yes/no) [${chalk.green(default_value)}]: `);
+
+    if(!value)
+        value = default_value;
+
+    config.dashboard.enabled = value == 'yes';
+
+    default_value = '8080';
+
+    if(config.dashboard.port)
+        default_value = config.dashboard.port;
+
+    console.log('');
+    value = readline.question(`Dashboard port [${chalk.green(default_value)}]: `);
+
+    if(!value || isNaN(parseInt(value)))
+        value = default_value;
+
+    config.dashboard.port = parseInt(value);
+
+    default_value = 'none';
+
+    if(config.dashboard.password)
+        default_value = config.dashboard.password;
+
+    console.log('');
+    console.log('(Optional) Dashboard password. Leave empty to auto-generate a random one on every boot (printed to the console).');
+    value = readline.question(`Dashboard password [${chalk.green(default_value)}]: `);
+
+    if(!value)
+        value = default_value;
+
+    config.dashboard.password = value == 'none' ? "" : value;
+
     console.log('');
 
     try{

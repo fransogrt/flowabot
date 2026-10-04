@@ -50,6 +50,26 @@ Some commands require additional API keys set in `config.json`:
 | `credentials.riot_api_key` | `;lol` | [Riot Developer Portal](https://developer.riotgames.com/) |
 | `credentials.henrikdev_key` | `;val` | [Henrik Dev API](https://docs.henrikdev.xyz/) |
 
+## Dashboard
+
+The bot includes a built-in web dashboard to watch live activity across its servers and send messages as the bot.
+
+Configure it in `config.json` (the `npm run config` wizard can also set it up):
+
+```json
+"dashboard": {
+    "enabled": true,
+    "port": 8080,
+    "password": "your-password"
+}
+```
+
+- URL: `http://<host>:8080` (e.g. `http://192.168.1.50:8080` when hosted on a Raspberry Pi)
+- If `password` is empty, a random one is generated and printed to the console on every boot
+- Features: live per-server activity feed (commands, messages, dashboard actions), usage stats, and a composer to send messages as the bot
+- The dashboard is password-protected and meant for local networks — do **not** expose it to the internet
+- When running in Docker, publish the port: `docker run ... -p 8080:8080`
+
 ---
 
 ##### Credits to original creator of the bot: [COMMANDS](https://github.com/LeaPhant/flowabot)
