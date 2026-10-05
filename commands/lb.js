@@ -121,6 +121,78 @@ function buildEmbed(guild, pages, page){
     return embed;
 }
 
+// Reaction navigation over the single leaderboard message (Req 5.1-5.5).
+// Only multi-page leaderboards get arrows and a collector; every invocation
+// owns its own `page` closure state, so simultaneous leaderboards are
+// independent. This function never rejects: every failure path is caught and
+// degrades gracefully (the command promise already resolved before this runs).
+// @param {Message} sentMsg the already-delivered page-1 message
+// @param {LeaderboardEntry[][]} pages
+// @param {(page: number) => EmbedBuilder} embedFor renders the target page
+// @returns {Promise<void>}
+async function attachNavigation(sentMsg, pages, embedFor){
+    // single page: neither arrows nor listener (Req 5.4)
+    if(pages.length <= 1)
+        return;
+
+    // per-invocation navigation state; never module-level
+    let page = 0;
+
+    // no "Add Reactions" permission: degrade to a static page-1 message (Req 5.1)
+    try{
+        await sentMsg.react('⬅️');
+        await sentMsg.react('➡️');
+    }catch(err){
+        helper.error('Could not add the leaderboard navigation reactions; the leaderboard stays static on page 1.', err);
+        return;
+    }
+
+    let collector;
+    try{
+        collector = sentMsg.createReactionCollector({
+            // only the two arrows pressed by real users (bots ignored)
+            filter: (reaction, user) => ['⬅️', '➡️'].includes(reaction.emoji.name) && !user.bot,
+            time: NAVIGATION_TTL_MS
+        });
+
+        collector.on('collect', (reaction, user) => {
+            (async () => {
+                // clamp instead of wrapping around at the ends (Req 5.3)
+                const target = Math.min(Math.max(reaction.emoji.name === '⬅️' ? page - 1 : page + 1, 0), pages.length - 1);
+
+                if(target !== page){
+                    page = target;
+
+                    // deleted message: stop listening entirely (Req 5.5)
+                    try{
+                        await sentMsg.edit({ embeds: [embedFor(page)] });
+                    }catch(err){
+                        collector.stop();
+                        helper.error('Could not edit the leaderboard message; navigation stopped.', err);
+                        return;
+                    }
+                }
+
+                // remove the presser's reaction so they can press again; removing
+                // someone else's reaction requires Manage Messages — if it fails,
+                // navigation continues without removing it (Req 5.2)
+                try{
+                    await reaction.users.remove(user.id);
+                }catch(err){
+                    helper.error('Could not remove the navigation reaction; continuing without removing it.', err);
+                }
+            })().catch(err => helper.error('Unexpected error while navigating the leaderboard.', err));
+        });
+
+        collector.on('end', () => {
+            // expiry: keep the last page on screen and simply stop responding (Req 5.5)
+            helper.log(`Leaderboard navigation expired after ${NAVIGATION_TTL_MS} ms; the message keeps its last page.`);
+        });
+    }catch(err){
+        helper.error('Could not start the leaderboard navigation; the leaderboard stays static on page 1.', err);
+    }
+}
+
 module.exports = {
     command: ['lb', 'leaderboard'],
     description: "Show a leaderboard of every linked osu! player in this server.",
@@ -165,10 +237,16 @@ module.exports = {
                 }
 
                 // sorted ranking, sliced into pages, rendered onto the single
-                // message as page 1 (navigation arrives with the pagination task)
+                // message as page 1; multi-page leaderboards get reaction
+                // navigation on this same message (fire-and-forget: the command
+                // resolves immediately, navigation lives in the background)
                 const sorted = sortEntries(entries);
                 const pages = buildPages(sorted);
                 await placeholder.edit({ embeds: [buildEmbed(msg.guild, pages, 0)] });
+
+                if(pages.length > 1)
+                    attachNavigation(placeholder, pages, p => buildEmbed(msg.guild, pages, p));
+
                 resolve(null);
             })().catch(reject);
         });
