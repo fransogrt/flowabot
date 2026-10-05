@@ -1,5 +1,6 @@
 const osu = require('../osu.js');
 const helper = require('../helper.js');
+const { EmbedBuilder } = require('discord.js');
 
 /**
  * One osu! player row of the server leaderboard.
@@ -9,6 +10,15 @@ const helper = require('../helper.js');
  * @property {number} pp
  * @property {number|null} global_rank
  */
+
+// Entries per page of the paginated leaderboard.
+const PAGE_SIZE = 10;
+// Lifetime of the reaction navigation (consumed by the pagination task; the
+// message simply stays on its last page once it expires).
+const NAVIGATION_TTL_MS = 120000;
+
+// Medals for the overall top 3; the medal replaces the position number.
+const MEDALS = ['🥇', '🥈', '🥉'];
 
 // Promisified wrapper over the callback-style domain function (osu.js keeps
 // its error-first callbacks; new code is async/await).
@@ -56,6 +66,61 @@ async function collectEntries(user_ign, guild){
     return entries;
 }
 
+// Total deterministic order (Req 3.1-3.3): pp descending; ties broken by the
+// better (lower) global rank; double ties broken alphabetically by IGN
+// (locale collation 'en'). Entries without a global rank sort after ranked
+// ones of the same pp. Returns a new array; the input is never mutated.
+// @param {LeaderboardEntry[]} entries
+// @returns {LeaderboardEntry[]}
+function sortEntries(entries){
+    return entries.slice().sort((a, b) =>
+        (b.pp - a.pp)
+        || ((a.global_rank ?? Infinity) - (b.global_rank ?? Infinity))
+        || a.ign.localeCompare(b.ign, 'en')
+    );
+}
+
+// Slice the sorted ranking into consecutive pages of PAGE_SIZE entries.
+// @param {LeaderboardEntry[]} entries
+// @returns {LeaderboardEntry[][]}
+function buildPages(entries){
+    const pages = [];
+    for(let i = 0; i < entries.length; i += PAGE_SIZE)
+        pages.push(entries.slice(i, i + PAGE_SIZE));
+    return pages;
+}
+
+// Render one page as an embed. Players are identified only by their osu! IGN
+// (never a Discord mention); positions count continuously across pages
+// (position = page * PAGE_SIZE + line + 1); the top 3 overall wear medals in
+// place of the number; pp is rounded and shown with a thousands separator;
+// the global rank is '#<rank>' or '—' when the player has none. The footer
+// with totals and page indicator appears only when there is more than one
+// page (Req 4.1-4.4).
+// @param {Guild} guild
+// @param {LeaderboardEntry[][]} pages
+// @param {number} page 0-based page index
+// @returns {EmbedBuilder}
+function buildEmbed(guild, pages, page){
+    const total = pages.reduce((sum, chunk) => sum + chunk.length, 0);
+
+    const lines = pages[page].map((entry, i) => {
+        const position = page * PAGE_SIZE + i + 1;
+        const prefix = position <= 3 ? MEDALS[position - 1] : `${position}.`;
+        const rank = entry.global_rank == null ? '—' : `#${entry.global_rank}`;
+        return `${prefix} ${entry.ign} • ${Math.round(entry.pp).toLocaleString('en-US')}pp • ${rank}`;
+    });
+
+    const embed = new EmbedBuilder()
+        .setTitle(`${guild.name} — osu! standard leaderboard`)
+        .setDescription(lines.join('\n'));
+
+    if(pages.length > 1)
+        embed.setFooter({ text: `${total} players · Page ${page + 1}/${pages.length}` });
+
+    return embed;
+}
+
 module.exports = {
     command: ['lb', 'leaderboard'],
     description: "Show a leaderboard of every linked osu! player in this server.",
@@ -99,10 +164,11 @@ module.exports = {
                     return;
                 }
 
-                // interim plain listing — task 2.2 replaces this seam with
-                // sortEntries/buildPages/buildEmbed (no sorting guarantees yet)
-                const lines = entries.map((entry, index) => `${index + 1}. ${entry.ign} — ${entry.pp}pp`);
-                await placeholder.edit(lines.join('\n'));
+                // sorted ranking, sliced into pages, rendered onto the single
+                // message as page 1 (navigation arrives with the pagination task)
+                const sorted = sortEntries(entries);
+                const pages = buildPages(sorted);
+                await placeholder.edit({ embeds: [buildEmbed(msg.guild, pages, 0)] });
                 resolve(null);
             })().catch(reject);
         });
