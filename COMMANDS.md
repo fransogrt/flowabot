@@ -2,22 +2,24 @@
 ### Table of contents
 - [;addpp](#addpp)
 - [;ar](#ar)
+- [;blacklist](#blacklist)
 - [;bmi](#bmi)
 - [;bpm](#bpm)
 - [;calcscore](#calcscore)
 - [;compare](#compare)
 - [;firsts](#firsts)
-- [;matchcosts](#matchcosts)
 - [;help](#help)
 - [;ign-set](#ign-set)
 - [;lazerscore](#lazerscore)
+- [;lb](#lb)
 - [;level](#level)
 - [;lol](#lol)
+- [;matchcosts](#matchcosts)
 - [;oppai](#oppai)
 - [;oppai2](#oppai2)
-- [;osu](#osu)
 - [;osu-track](#osu-track)
 - [;osu-untrack](#osu-untrack)
+- [;osu](#osu)
 - [;packs](#packs)
 - [;ping](#ping)
 - [;ping2](#ping2)
@@ -32,11 +34,13 @@
 - [;top](#top)
 - [;tops](#tops)
 - [;valorant](#valorant)
-- [;w;](#w)
+- [;w;](#w;)
 - [;with](#with)
 ---
 ## ;addpp
 Calculate new total pp after achieving a certain top play.
+
+**Variations**: `;addpp`, `;whatif`, `;wi`
 
 **Usage**: `;addpp <amounts separated by +> [username] [beatmap_id]`
 ### Examples:
@@ -65,6 +69,21 @@ Calculate Approach Rate values and miliseconds with mods applied.
 ;ar 8 +DT
 ```
 Returns AR of AR8 with DT applied.
+## ;blacklist
+Add or remove a user from the command blacklist (server owner only).
+
+**Usage**: `;blacklist <add|remove> <@user or user_id>`
+### Examples:
+
+```
+;blacklist add 123456789
+```
+Blocks user 123456789 from using bot commands.
+
+```
+;blacklist remove 123456789
+```
+Unblocks user 123456789.
 ## ;bmi
 Calculate your BMI.
 
@@ -113,7 +132,7 @@ Returns the maximum score for Disco Prince +HDHRDT.
 ## ;compare
 Search for best score on the last beatmap.
 
-**Variations**: `;compare`, `;c`
+**Variations**: `;compare`, `;c`, `;gmae`, `;lisko`
 
 **Usage**: `;compare [username or * for all users] [+mods]`
 ### Examples:
@@ -132,23 +151,6 @@ Returns Vaxei's best score with the same mods on the last beatmap.
 ;compare * +HD
 ```
 Returns the #1 HD score on the last beatmap.
-## ;matchcosts
-Calculate match cost for all players in a tournament match.
-
-**Variations**: `;matchcosts`, `;matchcost`, `;mc`
-
-**Usage**: `;matchcosts <match url or id> [warmups]`
-### Examples:
-
-```
-;matchcosts https://osu.ppy.sh/community/matches/123456789
-```
-Returns match cost for all players.
-
-```
-;mc https://osu.ppy.sh/mp/123456789 2
-```
-Returns match cost skipping the first 2 warmup maps.
 ## ;firsts
 Show a list of first places
 
@@ -203,6 +205,18 @@ Returns the maximum lazer classic score for Disco Prince with no mods.
 ;classicscore https://osu.ppy.sh/b/75 +HDHRDT
 ```
 Returns the maximum lazer classic score for Disco Prince +HDHRDT.
+## ;lb
+Show a leaderboard of every linked osu! player in this server.
+
+**Variations**: `;lb`, `;leaderboard`
+
+**Usage**: `;lb (no arguments)`
+### Example:
+
+```
+;lb
+```
+Returns the osu! leaderboard of the linked players in this server.
 ## ;level
 Calculate experimental level.
 
@@ -212,12 +226,12 @@ Calculate experimental level.
 ```
 ;level
 ```
-Calculates your experimental level.
+Calculates your exerimental level.
 
 ```
 ;level mrekk
 ```
-Calculates mrekk's experimental level.
+Calculates mrekks experimental level
 ## ;lol
 Show League of Legends profile.
 
@@ -229,17 +243,34 @@ Show League of Legends profile.
 ```
 ;lol thpr#EUW
 ```
-Returns Solo/Duo profile on EUW.
+Solo/Duo profile on EUW.
 
 ```
 ;lol thpr#EUW flex
 ```
-Returns Flex profile on EUW.
+Flex profile on EUW.
 
 ```
 ;lol Faker#KR1 kr
 ```
-Returns Solo/Duo profile on KR.
+Solo/Duo profile on KR.
+## ;matchcosts
+Calculate match costs for a tournament match.
+
+**Variations**: `;matchcosts`, `;matchcost`, `;mc`
+
+**Usage**: `;matchcosts <match url or id> [warmups=0]`
+### Examples:
+
+```
+;matchcosts https://osu.ppy.sh/community/matches/123456789
+```
+Returns match cost for all players in the match.
+
+```
+;matchcosts https://osu.ppy.sh/mp/123456789 2
+```
+Returns match cost skipping the first 2 warmup maps.
 ## ;oppai
 Uses oppai (2016 ppv2) to calculate pp for a beatmap.
 
@@ -260,18 +291,6 @@ Uses oppai (2014 ppv2) to calculate pp for a beatmap.
 ;oppai https://osu.ppy.sh/b/75 +DT 
 ```
 Calculates pp on this beatmap with DT applied.
-## ;osu
-Show osu! stats.
-
-**Variations**: `;osu`, `;osu2`
-
-**Usage**: `;osu [username]`
-### Example:
-
-```
-;osu nathan_on_osu
-```
-Returns nathan on osu's osu! stats.
 ## ;osu-track
 Start tracking the specified user's osu! top plays in the current channel.
 
@@ -292,6 +311,18 @@ Stop tracking the specified user's osu! top plays in the current channel.
 ;osu-untrack nathan_on_osu
 ```
 Stop tracking nathan on osu's top plays.
+## ;osu
+Show osu! stats.
+
+**Variations**: `;osu`, `;osu2`
+
+**Usage**: `;osu [username]`
+### Example:
+
+```
+;osu nathan_on_osu
+```
+Returns nathan on osu's osu! stats.
 ## ;packs
 Get the beatmap packs containing the given beatmap.
 
@@ -337,7 +368,7 @@ Returns Vaxei's top 7 pinned plays.
 ## ;recent
 Show recent score or pass.
 
-**Variations**: `;recent`, `;rs`, `;recentpass`, `;rp`
+**Variations**: `;recent`, `;rs`, `;recentpass`, `;rp`, `;rst`, `;rpt`, `;recenttaiko`, `;rsc`, `;rpc`, `;recentcatch`, `;rsm`, `;rpm`, `;recentmania`
 
 **Usage**: `;recent [username]`
 ### Examples:
@@ -407,6 +438,8 @@ Calculates pp on this beatmap with HD applied, 4 100s, 343 Combo and CS set to 2
 Calculates pp on this beatmap with 99% accuracy and a custom speed rate of 1.3*.
 ## ;score
 Search for a score on a beatmap.
+
+**Variations**: `;score`, `;soloscore`
 
 **Usage**: `;score <beatmap url> [username or * for any user] [+mods]`
 ### Examples:
@@ -534,6 +567,8 @@ Returns pipa's swiftplay stats for the current season.
 **Usage**: `;w;`
 ## ;with
 Show pp values of a beatmap with several accuracies or a specified accuracy.
+
+**Variations**: `;with`, `;map`
 
 **Usage**: `;with [beatmap url] [+mods] [98.34%]`
 ### Examples:
