@@ -2452,6 +2452,67 @@ module.exports = {
         cb(null, { users, medal_count });
 	},
 
+    /**
+     * @typedef {Object} UserStats
+     * @property {number} id
+     * @property {string} username
+     * @property {number} pp
+     * @property {number|null} global_rank   // null: account has no global rank
+     */
+
+    /**
+     * Raw osu! standard-mode stats for a player, looked up by IGN.
+     *
+     * @param {{u: string}} options
+     * @param {(err: string|null, stats: UserStats|null) => void} cb
+     *   cb(null, stats) → success
+     *   cb(null, null)  → user not found (404 or empty response, after 1 retry)
+     *   cb(err, null)   → network/API failure: "Couldn't reach osu!api. 💀"
+     */
+    get_user_stats: function(options, cb){
+        // retry flag is local to the call: get_user/getUserId share the module-global
+        // `retries` and corrupt each other under concurrent calls (pre-existing bug, not replicated here)
+        let tried_replacement = false;
+        let username = options.u;
+
+        const request = () => {
+            api.get(`/users/${username}/osu`).then(response => {
+                let data = response.data;
+
+                // empty response is treated as user not found
+                if(!data || data.length == 0){
+                    cb(null, null);
+                    return;
+                }
+
+                cb(null, {
+                    id: data.id,
+                    username: data.username,
+                    pp: Number(data.statistics.pp),
+                    global_rank: Number(data.statistics.global_rank) || null
+                });
+            }).catch(err => {
+                if(err.response && err.response.status == 404){
+                    // exactly one retry, replacing underscores with spaces
+                    if(!tried_replacement){
+                        tried_replacement = true;
+                        username = username.replace(/_/g, " ");
+                        request();
+                        return;
+                    }
+
+                    cb(null, null);
+                }
+                else
+                    cb("Couldn't reach osu!api. 💀");
+
+                helper.error(err);
+            });
+        };
+
+        request();
+    },
+
     calculate_strains: calculateStrains,
 
 	get_strains_bar: async function(osu_file_path, mods_string, progress = 100, beatmapset_id, frames){
