@@ -6,6 +6,7 @@ const { EmbedBuilder } = require('discord.js');
  * One osu! player row of the server leaderboard.
  *
  * @typedef {Object} LeaderboardEntry
+ * @property {number} user_id  osu! numeric id (dedupe key and profile URL)
  * @property {string} ign
  * @property {number} pp
  * @property {number|null} global_rank
@@ -19,6 +20,9 @@ const NAVIGATION_TTL_MS = 120000;
 
 // Medals for the overall top 3; the medal replaces the position number.
 const MEDALS = ['🥇', '🥈', '🥉'];
+
+// osu! pink accent, same as the firsts/tops/pins embeds.
+const ACCENT_COLOR = 0xBB5577;
 
 // Promisified wrapper over the callback-style domain function (osu.js keeps
 // its error-first callbacks; new code is async/await).
@@ -60,7 +64,7 @@ async function collectEntries(user_ign, guild){
             continue;
 
         seen_ids.add(stats.id);
-        entries.push({ ign: stats.username, pp: stats.pp, global_rank: stats.global_rank });
+        entries.push({ user_id: stats.id, ign: stats.username, pp: stats.pp, global_rank: stats.global_rank });
     }
 
     return entries;
@@ -90,13 +94,14 @@ function buildPages(entries){
     return pages;
 }
 
-// Render one page as an embed. Players are identified only by their osu! IGN
-// (never a Discord mention); positions count continuously across pages
-// (position = page * PAGE_SIZE + line + 1); the top 3 overall wear medals in
-// place of the number; pp is rounded and shown with a thousands separator;
-// the global rank is '#<rank>' or '—' when the player has none. The footer
-// with totals and page indicator appears only when there is more than one
-// page (Req 4.1-4.4).
+// Render one page as an embed. Players are identified only by their osu! IGN,
+// linked to the player's public osu! profile (never a Discord mention);
+// positions count continuously across pages (position = page * PAGE_SIZE +
+// line + 1); the top 3 overall wear medals in place of the number; pp is
+// rounded, bolded and shown with a thousands separator; the global rank is
+// '#<rank>' or '—' when the player has none. The footer with the total always
+// appears; the page indicator only when there is more than one page
+// (Req 4.1-4.6, 7.1, 7.3, 7.4).
 // @param {Guild} guild
 // @param {LeaderboardEntry[][]} pages
 // @param {number} page 0-based page index
@@ -108,15 +113,18 @@ function buildEmbed(guild, pages, page){
         const position = page * PAGE_SIZE + i + 1;
         const prefix = position <= 3 ? MEDALS[position - 1] : `${position}.`;
         const rank = entry.global_rank == null ? '—' : `#${entry.global_rank}`;
-        return `${prefix} ${entry.ign} • ${Math.round(entry.pp).toLocaleString('en-US')}pp • ${rank}`;
+        const pp = Math.round(entry.pp).toLocaleString('en-US');
+        return `${prefix} [${entry.ign}](https://osu.ppy.sh/u/${entry.user_id}) • **${pp}pp** • ${rank}`;
     });
 
     const embed = new EmbedBuilder()
+        .setColor(ACCENT_COLOR)
         .setTitle(`${guild.name} — osu! standard leaderboard`)
         .setDescription(lines.join('\n'));
 
-    if(pages.length > 1)
-        embed.setFooter({ text: `${total} players · Page ${page + 1}/${pages.length}` });
+    embed.setFooter({
+        text: `${total} players` + (pages.length > 1 ? ` · Page ${page + 1}/${pages.length}` : '')
+    });
 
     return embed;
 }
